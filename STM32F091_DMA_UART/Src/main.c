@@ -22,7 +22,7 @@
 #include "uart.h"
 
 uint8_t printf_buffer;
-uint8_t number=25;
+uint8_t number=27;
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
