@@ -11,6 +11,9 @@
 #include "stm32f0xx.h"
 
 extern uint8_t printf_buffer;
+extern uint8_t rx_buffer;
+extern uint8_t rx_message[256];
+extern uint8_t rx_position;
 
 void uart_config();
 void send_char(char c);

@@ -5,7 +5,6 @@
  *      Author: Sowa
  */
 
-
 #include "stm32f0xx.h"
 #include "uart.h"
 
@@ -24,7 +23,26 @@ void uart_config() {
 	/*      Transfer complete IT */
 	DMA1_Channel2->CMAR = (uint32_t) &printf_buffer; /* (2) */
 	DMA1_Channel2->CPAR = (uint32_t) &(USART1->TDR); /* (1) */
-	DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_DIR | DMA_CCR_TCIE; /* (3) */
+	DMA1_Channel2->CCR |= DMA_CCR_MINC | DMA_CCR_DIR; /* (3) */
+
+	/* DMA1 Channel2 USART_RX config */
+	/* (4)  Peripheral address */
+	/* (5)  Memory address */
+	/* (6)  Data size */
+	/* (7)  Memory increment */
+	/*      Peripheral to memory*/
+	/*      8-bit transfer */
+	/*      Transfer complete IT */
+	DMA1_Channel3->CPAR = (uint32_t) &(USART1->RDR); /* (4) */
+	DMA1_Channel3->CMAR = (uint32_t) &rx_buffer; /* (5) */
+	DMA1_Channel3->CNDTR = 1; /* (6) */
+	DMA1_Channel3->CCR |= DMA_CCR_MINC | DMA_CCR_TCIE | DMA_CCR_EN; /* (7) */
+
+	/* Configure IT */
+	/* (8) Set priority for DMA1_Channel2_3_IRQn */
+	/* (9) Enable DMA1_Channel2_3_IRQn */
+	NVIC_SetPriority(DMA1_Channel2_3_IRQn, 0); /* (8) */
+	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn); /* (9) */
 
 	RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
 	/* Configure USART1 */
@@ -63,10 +81,10 @@ void send_string(const char *s) {
 int __io_putchar(int ch) {
 	while (!(USART1->ISR & USART_ISR_TXE))
 		;
-	  printf_buffer=ch;
-	  DMA1_Channel2->CCR &=~ DMA_CCR_EN;
-	  DMA1_Channel2->CNDTR = 1;/* Data size */
-	  DMA1_Channel2->CCR |= DMA_CCR_EN;
-	 //USART1->TDR = ch; //For pooling transffer
+	printf_buffer = ch;
+	DMA1_Channel2->CCR &= ~ DMA_CCR_EN;
+	DMA1_Channel2->CNDTR = 1;/* Data size */
+	DMA1_Channel2->CCR |= DMA_CCR_EN;
+	//USART1->TDR = ch; //For pooling transffer
 	return 0;
 }

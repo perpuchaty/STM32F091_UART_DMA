@@ -22,15 +22,38 @@
 #include "uart.h"
 
 uint8_t printf_buffer;
-uint8_t number=29;
+uint8_t rx_buffer, rx_message[256], rx_position=0, rx_ready;
+
+uint8_t number = 29;
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
 #endif
 
-int main(void)
-{
+int main(void) {
 	uart_config();
-	puts("Hello World\r\n");
-	printf ("Printf test: %d\r\n", number);
-	for(;;);
+	puts("Hello World DMA transfer and recivie\r\n");
+	printf("Printf test: %d\r\n", number);
+	for (;;)
+	{
+		if(rx_ready)
+		{
+			uint8_t size=sizeof(rx_message);
+		rx_ready=0;
+		}
+	}
+}
+
+void DMA1_CH2_3_DMA2_CH1_2_IRQHandler(void) {
+	if ((DMA1->ISR & DMA_ISR_TCIF3) == DMA_ISR_TCIF3) {
+		DMA1->IFCR |= DMA_IFCR_CTCIF3;/* Clear TC flag */
+		rx_message[rx_position]=rx_buffer;
+		if (rx_message[rx_position]=='\r') {
+			rx_position=0;
+			rx_ready=1;
+		}
+		else rx_position++;
+		DMA1_Channel3->CCR &= ~ DMA_CCR_EN;
+		DMA1_Channel3->CNDTR = 1;/* Data size */
+		DMA1_Channel3->CCR |= DMA_CCR_EN;
+	}
 }
